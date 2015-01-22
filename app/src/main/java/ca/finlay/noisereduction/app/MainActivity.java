@@ -2,7 +2,9 @@ package ca.finlay.noisereduction.app;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -65,12 +67,25 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
 
     private void applyFilter(int filterID)
     {
+        SharedPreferences sharedPref = this.getApplicationContext().
+                getSharedPreferences(SettingsActivity.SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        int window_size = 3;
+        switch (filterID)
+        {
+            case ImageFilterTask.MEAN:
+                window_size = sharedPref.getInt(SettingsActivity.MEAN_SETTINGS, 3);
+                break;
+            case ImageFilterTask.MEDIAN:
+                window_size = sharedPref.getInt(SettingsActivity.MEDIAN_SETTINGS, 3);
+                break;
+        }
+
         _filter = new ImageFilterTask();
         _progress = new ProgressDialog(this);
         _progress.setMessage("Applying filter...");
         _progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         _progress.setCancelable(false);
-        _filter.execute(((BitmapDrawable)_imageView.getDrawable()).getBitmap(), 21, this);
+        _filter.execute(((BitmapDrawable)_imageView.getDrawable()).getBitmap(), window_size, this, filterID);
         _progress.show();
     }
 
@@ -87,7 +102,8 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
         {
             case R.id.action_settings:
             {
-                // TODO::JF Go to Settings
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivityForResult(intent, LOAD_ID);
                 return true;
             }
             case R.id.action_load:
@@ -125,6 +141,8 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
             Bitmap original = BitmapFactory.decodeStream(stream);
 
             _imageView.setImageBitmap(Bitmap.createScaledBitmap(original, _imageView.getWidth(), _imageView.getHeight(), true));
+            _btnMeanFilter.setVisibility(View.VISIBLE);
+            _btnMedianFilter.setVisibility(View.VISIBLE);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

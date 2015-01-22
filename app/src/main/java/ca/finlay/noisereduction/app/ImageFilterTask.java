@@ -1,6 +1,8 @@
 package ca.finlay.noisereduction.app;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -25,29 +27,24 @@ public class ImageFilterTask extends AsyncTask<Object, Double, Bitmap> {
         _parent = (FilterListener) objects[2];
         int filter_type = (Integer) objects[3];
 
-        int width = orig.getWidth();
-        int height = orig.getHeight();
-
         Bitmap newBitmap = Bitmap.createBitmap(orig);
+        Rect rWindow = new Rect();
+        Rect rOrig = new Rect(0, 0, orig.getWidth(), orig.getHeight());
 
-        int left, right, bottom, top;
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < orig.getWidth(); x++)
         {
-            left = x - (window_len-1)/2;
-            right = x + (window_len-1)/2;
-            left = left < 0 ? 0 : left;
-            right = right > width ? width : right;
+            rWindow.left = x - (window_len-1)/2;
+            rWindow.right = x + (window_len-1)/2;
 
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < orig.getHeight(); y++)
             {
-                top = y - (window_len-1)/2;
-                bottom = y + (window_len-1)/2;
-                top = top < 0 ? 0 : top;
-                bottom = bottom > height ? height : bottom;
-                int window_size = (bottom-top)*(right-left);
+                rWindow.top = y - (window_len-1)/2;
+                rWindow.bottom = y + (window_len-1)/2;
+                rWindow.intersect(rOrig);
 
-                int[] pixels = new int[window_size];
-                orig.getPixels(pixels, 0, right-left,  left, top, right-left, bottom-top);
+                int[] pixels = new int[rWindow.width() * rWindow.height()];
+                orig.getPixels(pixels, 0, rWindow.width(),  rWindow.left, rWindow.top,
+                        rWindow.width(), rWindow.height());
                 switch (filter_type)
                 {
                     case MEDIAN:
@@ -59,8 +56,8 @@ public class ImageFilterTask extends AsyncTask<Object, Double, Bitmap> {
                 }
             }
 
-            if (x % (width/100) == 0)
-                publishProgress(Double.valueOf(x/(width/100)));
+            if (x % (rOrig.width()/100) == 0)
+                publishProgress(Double.valueOf(x/(rOrig.width()/100)));
         }
 
         return newBitmap;
@@ -74,7 +71,24 @@ public class ImageFilterTask extends AsyncTask<Object, Double, Bitmap> {
 
     protected int extractMeanValue(int[] pixels)
     {
-        return 0;
+        int R = 0;
+        int G = 0;
+        int B = 0;
+        int A = 0;
+
+        for (int i : pixels)
+        {
+            A += (i >> 24) & 0xff;
+            R += (i >> 16) & 0xff;
+            G += (i >> 8) & 0xff;
+            B += i & 0xff;
+        }
+        A /= pixels.length;
+        R /= pixels.length;
+        G /= pixels.length;
+        B /= pixels.length;
+
+        return (A << 24) | (R << 16) | (G << 8) | B;
     }
 
     @Override
@@ -83,7 +97,6 @@ public class ImageFilterTask extends AsyncTask<Object, Double, Bitmap> {
         _parent.progressUpdate(values[0]);
         super.onProgressUpdate(values);
     }
-
 
     @Override
     protected void onPostExecute(Bitmap result) {

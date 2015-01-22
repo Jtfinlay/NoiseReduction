@@ -20,7 +20,8 @@
         <activity
             android:name="ca.finlay.noisereduction.app.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity">
         </activity>
     </application>
 
