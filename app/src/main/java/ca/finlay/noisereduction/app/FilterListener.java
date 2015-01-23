@@ -3,7 +3,7 @@ package ca.finlay.noisereduction.app;
 import android.graphics.Bitmap;
 
 /**
- * Created by James on 1/21/2015.
+ * Interface for interacting with Asynchronous Task
  */
 public interface FilterListener {
 

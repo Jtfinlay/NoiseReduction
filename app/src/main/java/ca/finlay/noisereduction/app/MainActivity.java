@@ -2,24 +2,16 @@ package ca.finlay.noisereduction.app;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -54,38 +46,27 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
         _btnMeanFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                applyFilter(ImageFilterTask.MEAN);
+                applyFilter(FilterFactory.createMeanFilter(getApplicationContext(),
+                        ((BitmapDrawable) _imageView.getDrawable()).getBitmap()));
             }
         });
         _btnMedianFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                applyFilter(ImageFilterTask.MEDIAN);
+                applyFilter(FilterFactory.createMedianFilter(getApplicationContext(),
+                        ((BitmapDrawable)_imageView.getDrawable()).getBitmap()));
             }
         });
     }
 
-    private void applyFilter(int filterID)
+    private void applyFilter(AbstractFilter filter)
     {
-        SharedPreferences sharedPref = this.getApplicationContext().
-                getSharedPreferences(SettingsActivity.SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        int window_size = 3;
-        switch (filterID)
-        {
-            case ImageFilterTask.MEAN:
-                window_size = sharedPref.getInt(SettingsActivity.MEAN_SETTINGS, 3);
-                break;
-            case ImageFilterTask.MEDIAN:
-                window_size = sharedPref.getInt(SettingsActivity.MEDIAN_SETTINGS, 3);
-                break;
-        }
-
         _filter = new ImageFilterTask();
         _progress = new ProgressDialog(this);
         _progress.setMessage("Applying filter...");
         _progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         _progress.setCancelable(false);
-        _filter.execute(((BitmapDrawable)_imageView.getDrawable()).getBitmap(), window_size, this, filterID);
+        _filter.execute(filter, this);
         _progress.show();
     }
 
@@ -164,7 +145,6 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
 
     @Override
     public void onComplete(Bitmap result) {
-        Log.v("MAIN_ACTIVITY", "Complete");
         _progress.setMessage("Filter Complete!");
         _progress.dismiss();
        _imageView.setImageBitmap(Bitmap.createScaledBitmap(result, _imageView.getWidth(), _imageView.getHeight(), true));
