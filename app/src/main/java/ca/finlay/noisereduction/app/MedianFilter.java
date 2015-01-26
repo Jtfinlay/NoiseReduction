@@ -17,8 +17,24 @@ public class MedianFilter extends AbstractFilter {
 
     protected int extractValue(int[] pixels)
     {
-        Arrays.sort(pixels);
-        return pixels[pixels.length / 2];
+        int[] R = new int[pixels.length];
+        int[] G = new int[pixels.length];
+        int[] B = new int[pixels.length];
+        int[] A = new int[pixels.length];
+
+        for (int i=0; i<pixels.length; i++)
+        {
+            A[i] = (pixels[i] >> 24) & 0xff;
+            R[i] = (pixels[i] >> 16) & 0xff;
+            G[i] = (pixels[i] >> 8) & 0xff;
+            B[i] = (pixels[i]) & 0xff;
+        }
+        Arrays.sort(A);
+        Arrays.sort(R);
+        Arrays.sort(G);
+        Arrays.sort(B);
+
+        return (A[A.length/2] << 24) | (R[R.length/2] << 16) | (G[G.length/2] << 8) | B[B.length/2];
     }
 }
 

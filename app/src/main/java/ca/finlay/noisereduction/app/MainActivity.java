@@ -27,6 +27,7 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
 
     private static final int LOAD_ID = 1;
 
+    private Bitmap _bitMap;
     private Button _btnMeanFilter;
     private Button _btnMedianFilter;
     private ImageView _imageView;
@@ -46,15 +47,13 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
         _btnMeanFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                applyFilter(FilterFactory.createMeanFilter(getApplicationContext(),
-                        ((BitmapDrawable) _imageView.getDrawable()).getBitmap()));
+                applyFilter(FilterFactory.createMeanFilter(getApplicationContext(), _bitMap));
             }
         });
         _btnMedianFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                applyFilter(FilterFactory.createMedianFilter(getApplicationContext(),
-                        ((BitmapDrawable)_imageView.getDrawable()).getBitmap()));
+                applyFilter(FilterFactory.createMedianFilter(getApplicationContext(),_bitMap));
             }
         });
     }
@@ -119,9 +118,9 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
         InputStream stream = null;
         try {
             stream = getContentResolver().openInputStream(data);
-            Bitmap original = BitmapFactory.decodeStream(stream);
+            _bitMap = BitmapFactory.decodeStream(stream);
 
-            _imageView.setImageBitmap(Bitmap.createScaledBitmap(original, _imageView.getWidth(), _imageView.getHeight(), true));
+            _imageView.setImageBitmap(_bitMap);
             _btnMeanFilter.setVisibility(View.VISIBLE);
             _btnMedianFilter.setVisibility(View.VISIBLE);
 
@@ -147,6 +146,7 @@ public class MainActivity extends ActionBarActivity implements FilterListener {
     public void onComplete(Bitmap result) {
         _progress.setMessage("Filter Complete!");
         _progress.dismiss();
-       _imageView.setImageBitmap(Bitmap.createScaledBitmap(result, _imageView.getWidth(), _imageView.getHeight(), true));
+        _bitMap = result;
+        _imageView.setImageBitmap(_bitMap);
     }
 }

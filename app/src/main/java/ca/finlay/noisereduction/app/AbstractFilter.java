@@ -25,7 +25,7 @@ public abstract class AbstractFilter extends Observable {
 
     public Bitmap startFilter()
     {
-        Bitmap newBitmap = Bitmap.createBitmap(_orig);
+        Bitmap newBitmap = _orig.copy(Bitmap.Config.ARGB_8888, true);
         Rect rWindow = new Rect();
         Rect rOrig = new Rect(0, 0, _orig.getWidth(), _orig.getHeight());
 
